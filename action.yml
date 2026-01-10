@@ -10,6 +10,10 @@ inputs:
     description: 'GitHub token for creating issues. Requires issues: write permissions.'
     required: false
     default: ${{ github.token }}
+  labels:
+    description: 'Comma-separated list of labels to add to the issue (e.g., "dependencies,update-available")'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -26,12 +30,20 @@ runs:
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
       env:
         PRODUCT: ${{ inputs.product }}
+        LABELS: ${{ inputs.labels }}
       with:
         github-token: ${{ inputs.token }}
         script: |
           const fs = require('fs');
           const path = require('path');
           const product = process.env.PRODUCT;
+          const labelsInput = process.env.LABELS || '';
+
+          // Parse labels from comma-separated string
+          const labels = labelsInput
+            .split(',')
+            .map(label => label.trim())
+            .filter(label => label.length > 0);
 
           // Fetch latest release from endoflife.date API
           core.info(`Checking for updates to ${product}...`);
@@ -87,7 +99,7 @@ runs:
               repo: context.repo.repo,
               title: issueTitle,
               body: issueBody,
-              labels: ['dependencies', 'update-available']
+              labels: labels
             });
 
             core.info(`Created issue #${issue.data.number}`);

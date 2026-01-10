@@ -32,6 +32,7 @@ jobs:
         uses: lbussell/check-for-updates@...
         with:
           product: ubuntu
+          labels: 'dependencies,update-available'
 ```
 
 ### Inputs
@@ -40,6 +41,7 @@ jobs:
 |-------|-------------|----------|---------|
 | `product` | endoflife.date product ID | Yes | - |
 | `token` | GitHub token for creating issues | No | `${{ github.token }}` |
+| `labels` | Comma-separated list of labels to add to the issue | No | ` ` (no labels) |
 
 ### Outputs
 
