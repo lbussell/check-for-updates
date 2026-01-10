@@ -1,0 +1,62 @@
+name: Validate Action
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.1
+
+      - name: Clear cache
+        run: |
+          gh cache delete "endoflife-alpine" || echo "Cache not found, continuing..."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run action (first time - should create issue)
+        id: first-run
+        uses: ./
+        with:
+          product: alpine
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate first run created issue
+        run: |
+          if [ -z "${{ steps.first-run.outputs.issue-number }}" ]; then
+            echo "❌ First run should have created an issue"
+            exit 1
+          fi
+          echo "✅ First run created issue #${{ steps.first-run.outputs.issue-number }}"
+          echo "✅ New version detected: ${{ steps.first-run.outputs.new-version }}"
+
+      - name: Run action (second time - should NOT create issue)
+        id: second-run
+        uses: ./
+        with:
+          product: alpine
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate second run did NOT create issue
+        run: |
+          if [ -n "${{ steps.second-run.outputs.issue-number }}" ]; then
+            echo "❌ Second run should NOT have created an issue"
+            exit 1
+          fi
+          echo "✅ Second run correctly did not create a duplicate issue"
+
+      - name: Close test issue
+        if: steps.first-run.outputs.issue-number != ''
+        run: |
+          gh issue close "${{ steps.first-run.outputs.issue-number }}" --comment "Closing test issue from validation workflow"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
