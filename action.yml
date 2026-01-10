@@ -16,14 +16,14 @@ runs:
   steps:
     - name: Restore cached version
       id: cache-restore
-      uses: actions/cache/restore@v5.0.1
+      uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
       with:
         path: .endoflife-cache
         key: endoflife-${{ inputs.product }}
 
     - name: Check for updates
       id: check-for-updates
-      uses: actions/github-script@v8.0.0
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
       env:
         PRODUCT: ${{ inputs.product }}
       with:
@@ -108,7 +108,7 @@ runs:
           }
 
     - name: Save cached version
-      uses: actions/cache/save@v5.0.1
+      uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
       if: always()
       with:
         path: .endoflife-cache
