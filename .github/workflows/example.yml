@@ -20,15 +20,12 @@ jobs:
         uses: ./
         with:
           product: ubuntu
+          labels: update-ubuntu
           token: ${{ secrets.GITHUB_TOKEN }}
-
-  check-alpine:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6.0.1
 
       - name: Check for Alpine Linux updates
         uses: ./
         with:
           product: alpine
+          labels: update-alpine
           token: ${{ secrets.GITHUB_TOKEN }}
