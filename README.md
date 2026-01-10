@@ -31,17 +31,13 @@ jobs:
       - name: Check for Ubuntu updates
         uses: lbussell/check-for-updates@...
         with:
+          # https://endoflife.date product ID
           product: ubuntu
-          labels: 'dependencies,update-available'
+          # (optional) Comma-separated list of labels that will be added to the issue
+          # labels: 'your-label-here'
+          # (optional) GitHub token for creating issues. Uses ${{ github.token }} if not set.
+          # token: '...'
 ```
-
-### Inputs
-
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `product` | endoflife.date product ID | Yes | - |
-| `token` | GitHub token for creating issues | No | `${{ github.token }}` |
-| `labels` | Comma-separated list of labels to add to the issue | No | ` ` (no labels) |
 
 ### Outputs
 
