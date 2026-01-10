@@ -9,7 +9,10 @@ on:
 
 permissions:
   contents: read
+  # Required to open issues
   issues: write
+  # Required to clear cache
+  actions: write
 
 jobs:
   validate:
