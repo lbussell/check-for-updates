@@ -14,10 +14,31 @@ inputs:
     description: 'Comma-separated list of labels to add to the issue (e.g., "dependencies,update-available")'
     required: false
     default: ''
+  title-template:
+    description: 'Mustache template for the issue title.'
+    required: false
+    default: 'New {{product}} release: {{cycle}}{{^cycle}}{{latest}}{{/cycle}}'
+  body-template:
+    description: 'Mustache template for the issue body.'
+    required: false
+    default: |
+      A new version of **{{product}}** is available!
+
+      - **Version**: {{cycle}}{{^cycle}}{{latest}}{{/cycle}}
+      - **Release Date**: {{releaseDate}}{{^releaseDate}}{{release}}{{/release}}{{^releaseDate}}{{^release}}Unknown{{/release}}{{/releaseDate}}
+      - **End of Life**: {{eol}}{{^eol}}Unknown{{/eol}}
+      - **LTS**: {{lts}}
+
+      Previous version: {{cachedVersion}}
+
+      For more information, visit: https://endoflife.date/{{product}}
 
 runs:
   using: 'composite'
   steps:
+    - name: Install dependencies
+      run: npm ci
+
     - name: Restore cached version
       id: cache-restore
       uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
@@ -31,13 +52,19 @@ runs:
       env:
         PRODUCT: ${{ inputs.product }}
         LABELS: ${{ inputs.labels }}
+        TITLE_TEMPLATE: ${{ inputs.title-template }}
+        BODY_TEMPLATE: ${{ inputs.body-template }}
       with:
         github-token: ${{ inputs.token }}
         script: |
           const fs = require('fs');
           const path = require('path');
+          const Mustache = require('mustache');
+
           const product = process.env.PRODUCT;
           const labelsInput = process.env.LABELS || '';
+          const titleTemplate = process.env.TITLE_TEMPLATE;
+          const bodyTemplate = process.env.BODY_TEMPLATE;
 
           // Parse labels from comma-separated string
           const labels = labelsInput
@@ -61,12 +88,8 @@ runs:
           // Get the latest release
           const latestRelease = releases[0];
           const latestVersion = latestRelease.cycle || latestRelease.latest;
-          const releaseDate = latestRelease.releaseDate || latestRelease.release || 'Unknown';
-          const eolDate = latestRelease.eol || 'Unknown';
-          const lts = latestRelease.lts || false;
 
           core.info(`Latest version: ${latestVersion}`);
-          core.info(`Release date: ${releaseDate}`);
 
           // Read cached version
           const cacheDir = '.endoflife-cache';
@@ -85,14 +108,13 @@ runs:
             core.info(`New release detected: ${latestVersion}`);
 
             // Create issue
-            const issueTitle = `New ${product} release: ${latestVersion}`;
-            const issueBody = `A new version of **${product}** is available!\n\n` +
-              `- **Version**: ${latestVersion}\n` +
-              `- **Release Date**: ${releaseDate}\n` +
-              `- **End of Life**: ${eolDate}\n` +
-              `- **LTS**: ${lts}\n\n` +
-              `Previous version: ${cachedVersion || 'None'}\n\n` +
-              `For more information, visit: https://endoflife.date/${product}`;
+            const templateData = {
+              ...latestRelease,
+              product,
+              cachedVersion: cachedVersion || 'None'
+            };
+            const issueTitle = Mustache.render(titleTemplate, templateData);
+            const issueBody = Mustache.render(bodyTemplate, templateData);
 
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
