@@ -15,18 +15,18 @@ inputs:
     required: false
     default: ''
   title-template:
-    description: 'Mustache template for the issue title.'
+    description: 'Handlebars template for the issue title.'
     required: false
-    default: 'New {{product}} release: {{cycle}}{{^cycle}}{{latest}}{{/cycle}}'
+    default: 'New {{product}} release: {{#if cycle}}{{cycle}}{{else}}{{latest}}{{/if}}'
   body-template:
-    description: 'Mustache template for the issue body.'
+    description: 'Handlebars template for the issue body.'
     required: false
     default: |
       A new version of **{{product}}** is available!
 
-      - **Version**: {{cycle}}{{^cycle}}{{latest}}{{/cycle}}
-      - **Release Date**: {{#releaseDate}}{{releaseDate}}{{/releaseDate}}{{^releaseDate}}{{#release}}{{release}}{{/release}}{{^release}}Unknown{{/release}}{{/releaseDate}}
-      - **End of Life**: {{#eol}}{{eol}}{{/eol}}{{^eol}}Unknown{{/eol}}
+      - **Version**: {{#if cycle}}{{cycle}}{{else}}{{latest}}{{/if}}
+      - **Release Date**: {{#if releaseDate}}{{releaseDate}}{{else}}{{#if release}}{{release}}{{else}}Unknown{{/if}}{{/if}}
+      - **End of Life**: {{#if eol}}{{eol}}{{else}}Unknown{{/if}}
       - **LTS**: {{lts}}
 
       Previous version: {{cachedVersion}}
@@ -60,7 +60,7 @@ runs:
         script: |
           const fs = require('fs');
           const path = require('path');
-          const Mustache = require('mustache');
+          const Handlebars = require('handlebars');
 
           const product = process.env.PRODUCT;
           const labelsInput = process.env.LABELS || '';
@@ -114,8 +114,8 @@ runs:
               product,
               cachedVersion: cachedVersion || 'None'
             };
-            const issueTitle = Mustache.render(titleTemplate, templateData);
-            const issueBody = Mustache.render(bodyTemplate, templateData);
+            const issueTitle = Handlebars.compile(titleTemplate)(templateData);
+            const issueBody = Handlebars.compile(bodyTemplate)(templateData);
 
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
