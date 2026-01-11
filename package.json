@@ -1,0 +1,7 @@
+{
+  "name": "dependencies",
+  "private": true,
+  "dependencies":  {
+    "mustache":  "4.2.0"
+  }
+}
