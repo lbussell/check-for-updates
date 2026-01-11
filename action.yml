@@ -25,8 +25,8 @@ inputs:
       A new version of **{{product}}** is available!
 
       - **Version**: {{cycle}}{{^cycle}}{{latest}}{{/cycle}}
-      - **Release Date**: {{releaseDate}}{{^releaseDate}}{{release}}{{/release}}{{^releaseDate}}{{^release}}Unknown{{/release}}{{/releaseDate}}
-      - **End of Life**: {{eol}}{{^eol}}Unknown{{/eol}}
+      - **Release Date**: {{#releaseDate}}{{releaseDate}}{{/releaseDate}}{{^releaseDate}}{{#release}}{{release}}{{/release}}{{^release}}Unknown{{/release}}{{/releaseDate}}
+      - **End of Life**: {{#eol}}{{eol}}{{/eol}}{{^eol}}Unknown{{/eol}}
       - **LTS**: {{lts}}
 
       Previous version: {{cachedVersion}}
